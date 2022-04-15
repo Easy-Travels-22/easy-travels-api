@@ -19,7 +19,7 @@ const tripSchema = new mongoose.Schema({
     maxLength: [500, "Description should not exceed 500 characters"],
   },
   schedule: {
-    type: [activitySchema],
+    type: [[activitySchema]],
   },
 });
 

@@ -12,6 +12,7 @@ const activitySchema = new mongoose.Schema({
       values: ["destination", "transit", "location"],
       message: "activity must be of Destination, Transit or Accommodation Type",
     },
+    required: true,
   },
   description: {
     type: String,

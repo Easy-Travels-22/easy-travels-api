@@ -69,3 +69,41 @@ exports.deleteTrip = async (req, res) => {
     });
   }
 };
+
+exports.getSchedule = async (req, res) => {
+  try {
+    const trip = await Trip.find(req.params);
+    const schedule = trip ? trip.schedule : null;
+    res.status(200).json({
+      status: "success",
+      data: schedule,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: "Unable to get schedule",
+      data: error,
+    });
+  }
+};
+
+exports.updateSchedule = async (req, res) => {
+  try {
+    const scheduleUpdate = { schedule: req.body.schedule };
+    const trip = await Trip.findByIdAndUpdate(req.params.id, scheduleUpdate, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: "Updated Schedule",
+      data: {
+        trip,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: "Unable to update schedule",
+      data: error,
+    });
+  }
+};
