@@ -1,3 +1,4 @@
+const { findById, findByIdAndDelete } = require("../models/tripModel");
 const Trip = require("../models/tripModel");
 
 exports.getAllTrips = async (req, res) => {
@@ -47,6 +48,24 @@ exports.updateTrip = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       status: "Failed to update Trip",
+      data: error,
+    });
+  }
+};
+
+exports.deleteTrip = async (req, res) => {
+  try {
+    const trip = await Trip.findByIdAndDelete(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: {
+        trip,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: "Failed to delete Trip",
+      data: error,
     });
   }
 };
