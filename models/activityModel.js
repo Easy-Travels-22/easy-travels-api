@@ -6,16 +6,16 @@ const activitySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+  },
   activityType: {
     type: String,
     enum: {
-      values: ["destination", "transit", "location"],
+      values: ["destination", "transit", "accommodation"],
       message: "activity must be of Destination, Transit or Accommodation Type",
     },
     required: true,
-  },
-  description: {
-    type: String,
   },
   startTime: {
     type: Date,
@@ -23,6 +23,44 @@ const activitySchema = new mongoose.Schema({
   endTime: {
     type: Date,
   },
+  startLocation: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+  endLocation: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+  activityOwner: {
+    type: String,
+    required: true,
+  },
+  createdOn: {
+    type: Date,
+    required: true,
+  },
 });
 
-module.exports = activitySchema;
+activitySchema.pre("save", function (next) {
+  this.createdOn = Date.now();
+
+  next();
+});
+
+const Activity = mongoose.model("Activity", activitySchema);
+
+module.exports = Activity;
