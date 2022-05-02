@@ -19,9 +19,21 @@ const activitySchema = new mongoose.Schema({
   },
   startTime: {
     type: Date,
+    validate: {
+      validator: function (date) {
+        return date <= this.endTime;
+      },
+      message: "Start Time must be before End Time",
+    },
   },
   endTime: {
     type: Date,
+    validate: {
+      validator: function (date) {
+        return date >= this.startTime;
+      },
+      message: "End Time must be after Start Time",
+    },
   },
   startLocation: {
     type: {
