@@ -1,20 +1,25 @@
 const express = require("express");
-const server = require("../server");
-
+const { protect } = require("../controllers/authController");
 const {
   getAllTrips,
+  getTrip,
   createTrip,
   updateTrip,
   deleteTrip,
   getSchedule,
   updateSchedule,
+  assignTripOwner,
 } = require("../controllers/tripController");
 
 const router = express.Router();
 
-router.route("/get-schedule/:id").get(getSchedule);
+router.route("/get-schedule/:id").get(protect, getSchedule);
 router.route("/update-schedule/:id").patch(updateSchedule);
-router.route("/").get(getAllTrips).post(createTrip);
-router.route("/:id").patch(updateTrip).delete(deleteTrip);
+router.route("/").get(protect, getAllTrips).post(protect, createTrip); //needs to be admin protected
+router
+  .route("/:id")
+  .patch(protect, updateTrip)
+  .delete(protect, deleteTrip)
+  .get(protect, getTrip);
 
 module.exports = router;
