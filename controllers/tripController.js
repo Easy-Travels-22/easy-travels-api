@@ -17,6 +17,8 @@ const tripExisstsAndBelongsToRequester = (trip, req, next) => {
   }
 };
 
+exports.tripExisstsAndBelongsToRequester = tripExisstsAndBelongsToRequester;
+
 exports.getAllTrips = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.body.requester._id);
   const promises = [];
@@ -61,23 +63,30 @@ exports.createTrip = catchAsync(async (req, res, next) => {
 });
 
 exports.updateTrip = catchAsync(async (req, res, next) => {
-  let trip = await Trip.findById(req.params.id);
+  let trip = await Trip.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: false,
+  });
 
   if (!tripExisstsAndBelongsToRequester(trip, req, next)) return;
 
   if (req.body.startDate || req.body.endDate) {
-    const newStartDate = req.body.startDate || trip.startDate;
-    const newEndDate = req.body.endDate || trip.endDate;
+    const newStartDate = new Date(req.body.startDate || trip.startDate);
+    const newEndDate = new Date(req.body.endDate || trip.endDate);
+    const newDuration = newEndDate.getDate() - newStartDate.getDate() + 1;
+    const oldDuration = trip.schedule.length;
     if (newEndDate <= newStartDate) {
-      next(new AppError("End Date must be after Start Date"));
-      return;
+      return next(new AppError("End Date must be after Start Date"));
     }
+    if (newDuration < oldDuration) {
+      trip.schedule = trip.schedule.slice(0, newDuration);
+    } else {
+      for (let i = 0; i < newDuration - oldDuration; i++) {
+        trip.schedule.push([]);
+      }
+    }
+    trip.save();
   }
-
-  trip = await Trip.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: false,
-  });
 
   res.status(200).json({
     status: "Successfully Updated",
@@ -91,6 +100,10 @@ exports.deleteTrip = catchAsync(async (req, res, next) => {
   let trip = await Trip.findById(req.params.id);
 
   if (tripExisstsAndBelongsToRequester(trip, req, next)) {
+    let user = await User.findById(req.body.requester._id);
+    user.trips.remove(req.params.id);
+    user.save();
+
     await Trip.findByIdAndDelete(req.params.id);
     res.status(200).json({
       status: "success",
@@ -102,14 +115,21 @@ exports.getSchedule = catchAsync(async (req, res, next) => {
   const trip = await Trip.findById(req.params.id);
 
   if (tripExisstsAndBelongsToRequester(trip, req, next)) {
-    const scheduleById = trip.schedule;
     const promises = [];
 
-    for (let activityId of scheduleById) {
-      promises.push(Activity.findById(activityId));
+    for (let day of trip.schedule) {
+      let dayArr = [];
+      for (let activity of day) {
+        dayArr.push(Activity.findById(activity));
+      }
+      promises.push(dayArr);
     }
 
-    const activities = await Promise.all(promises);
+    activities = [];
+    for (let promiseArr of promises) {
+      let curr = await Promise.all(promiseArr);
+      activities.push(curr);
+    }
 
     res.status(200).json({
       status: "success",
@@ -122,7 +142,7 @@ exports.updateSchedule = catchAsync(async (req, res, next) => {
   let trip = await Trip.findById(req.params.id);
 
   if (tripExisstsAndBelongsToRequester(trip, req, next)) {
-    const scheduleUpdate = { scheduleById: req.body.scheduleById };
+    const scheduleUpdate = { schedule: req.body.schedule };
     trip = await Trip.findByIdAndUpdate(req.params.id, scheduleUpdate, {
       new: true,
       runValidators: true,
@@ -135,4 +155,17 @@ exports.updateSchedule = catchAsync(async (req, res, next) => {
       },
     });
   }
+});
+
+exports.deleteAllTrips = catchAsync(async (req, res, next) => {
+  let users = await User.find();
+
+  for (let user of users) {
+    user.trips = [];
+    user.save();
+  }
+
+  res.status(200).json({
+    status: "all trips deleted",
+  });
 });
