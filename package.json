@@ -2,7 +2,7 @@
   "name": "easy-travels-api",
   "version": "1.0.0",
   "description": "A Node.JS, Express and MongoDB backend for EasyTravels",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
