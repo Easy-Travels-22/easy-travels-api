@@ -4,6 +4,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
+const compression = require("compression");
 
 const app = express();
 const limiter = rateLimit({
@@ -24,6 +25,8 @@ app.use(xss());
 app.use(helmet());
 
 app.use("/api", limiter);
+
+app.use(compression());
 
 const tripRouter = require("./routes/tripRoutes");
 const activityRouter = require("./routes/activityRoutes");
