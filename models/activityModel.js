@@ -35,35 +35,11 @@ const activitySchema = new mongoose.Schema({
       message: "End Time must be after Start Time",
     },
   },
-  startLocation: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
-  },
-  endLocation: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
-  },
   activityOwner: {
     type: String,
-    required: true,
   },
   createdOn: {
     type: Date,
-    required: true,
   },
 });
 
