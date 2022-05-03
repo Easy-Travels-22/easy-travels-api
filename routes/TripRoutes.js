@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect, restrictTo } = require("../controllers/authController");
 const {
   getAllTrips,
   getTrip,
@@ -8,11 +7,17 @@ const {
   deleteTrip,
   getSchedule,
   updateSchedule,
+  deleteAllTrips,
 } = require("../controllers/tripController");
+
+const { protect, restrictTo } = require("../controllers/authController");
 
 const router = express.Router();
 
 router.route("/get-schedule/:id").get(protect, getSchedule);
+router
+  .route("/delete-all")
+  .delete(protect, restrictTo("Admin"), deleteAllTrips);
 router.route("/update-schedule/:id").patch(updateSchedule);
 router.route("/").get(protect, getAllTrips).post(protect, createTrip);
 router
