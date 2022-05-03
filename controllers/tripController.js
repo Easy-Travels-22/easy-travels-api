@@ -5,6 +5,18 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 
+const tripExisstsAndBelongsToRequester = (trip, req, next) => {
+  if (!trip) {
+    next(new AppError("Trip not found"));
+    return false;
+  } else if (trip.tripOwner != req.body.requester._id) {
+    next(new AppError("Trip does not belong to logged in user"));
+    return false;
+  } else {
+    return true;
+  }
+};
+
 exports.getAllTrips = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.body.requester._id);
   const promises = [];
@@ -12,6 +24,7 @@ exports.getAllTrips = catchAsync(async (req, res, next) => {
   for (let tripId of user.trips) {
     promises.push(Trip.findById(tripId));
   }
+
   const trips = await Promise.all(promises);
 
   res.status(200).json({
@@ -23,14 +36,12 @@ exports.getAllTrips = catchAsync(async (req, res, next) => {
 exports.getTrip = catchAsync(async (req, res, next) => {
   const trip = await Trip.findById(req.params.id);
 
-  if (trip.tripOwner != req.body.requester._id) {
-    next(new AppError("Trip does not belong to logged in user"));
-    return;
+  if (tripExisstsAndBelongsToRequester(trip, req, next)) {
+    res.status(200).json({
+      status: "success",
+      data: trip,
+    });
   }
-  res.status(200).json({
-    status: "success",
-    data: trip,
-  });
 });
 
 exports.createTrip = catchAsync(async (req, res, next) => {
@@ -52,13 +63,7 @@ exports.createTrip = catchAsync(async (req, res, next) => {
 exports.updateTrip = catchAsync(async (req, res, next) => {
   let trip = await Trip.findById(req.params.id);
 
-  if (!trip) {
-    next(new AppError("Trip not found"));
-    return;
-  } else if (trip.tripOwner != req.body.requester._id) {
-    next(new AppError("Trip does not belong to logged in user"));
-    return;
-  }
+  if (!tripExisstsAndBelongsToRequester(trip, req, next)) return;
 
   if (req.body.startDate || req.body.endDate) {
     const newStartDate = req.body.startDate || trip.startDate;
@@ -85,71 +90,49 @@ exports.updateTrip = catchAsync(async (req, res, next) => {
 exports.deleteTrip = catchAsync(async (req, res, next) => {
   let trip = await Trip.findById(req.params.id);
 
-  if (!trip) {
-    next(new AppError("Trip not found"));
-    return;
-  } else if (trip.tripOwner != req.body.requester._id) {
-    next(new AppError("Trip does not belong to logged in user"));
-    return;
+  if (tripExisstsAndBelongsToRequester(trip, req, next)) {
+    await Trip.findByIdAndDelete(req.params.id);
+    res.status(200).json({
+      status: "success",
+    });
   }
-
-  trip = await Trip.findByIdAndDelete(req.params.id);
-  res.status(200).json({
-    status: "success",
-  });
 });
 
 exports.getSchedule = catchAsync(async (req, res, next) => {
   const trip = await Trip.findById(req.params.id);
 
-  if (!trip) {
-    next(new AppError("Trip not found"));
-    return;
-  } else if (trip.tripOwner != req.body.requester._id) {
-    next(new AppError("Trip does not belong to logged in user"));
-    return;
+  if (tripExisstsAndBelongsToRequester(trip, req, next)) {
+    const scheduleById = trip.schedule;
+    const promises = [];
+
+    for (let activityId of scheduleById) {
+      promises.push(Activity.findById(activityId));
+    }
+
+    const activities = await Promise.all(promises);
+
+    res.status(200).json({
+      status: "success",
+      activities,
+    });
   }
-
-  const scheduleById = trip.schedule;
-  const promises = [];
-
-  for (let activityId of scheduleById) {
-    promises.push(Activity.findById(activityId));
-  }
-
-  const activities = await Promise.all(promises);
-
-  res.status(200).json({
-    status: "success",
-    activities,
-  });
 });
 
 exports.updateSchedule = catchAsync(async (req, res, next) => {
   let trip = await Trip.findById(req.params.id);
 
-  if (!trip) {
-    next(new AppError("Trip not found"));
-    return;
-  } else if (trip.tripOwner != req.body.requester._id) {
-    next(new AppError("Trip does not belong to logged in user"));
-    return;
+  if (tripExisstsAndBelongsToRequester(trip, req, next)) {
+    const scheduleUpdate = { scheduleById: req.body.scheduleById };
+    trip = await Trip.findByIdAndUpdate(req.params.id, scheduleUpdate, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: "Updated Schedule",
+      data: {
+        trip,
+      },
+    });
   }
-  const scheduleUpdate = { scheduleById: req.body.scheduleById };
-  trip = await Trip.findByIdAndUpdate(req.params.id, scheduleUpdate, {
-    new: true,
-    runValidators: true,
-  });
-
-  res.status(200).json({
-    status: "Updated Schedule",
-    data: {
-      trip,
-    },
-  });
-});
-
-exports.assignTripOwner = catchAsync(async (req, res, next) => {
-  const decoded = await promisify(jwt.decode)(token, process.env.JWT_SECRET);
-  req.body.tripOwner = decoded.id;
 });
