@@ -6,7 +6,7 @@ const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 
 exports.getAllTrips = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.body.requesterId);
+  const user = await User.findById(req.body.requester._id);
   const promises = [];
 
   for (let tripId of user.trips) {
@@ -23,7 +23,7 @@ exports.getAllTrips = catchAsync(async (req, res, next) => {
 exports.getTrip = catchAsync(async (req, res, next) => {
   const trip = await Trip.findById(req.params.id);
 
-  if (trip.tripOwner !== req.body.requesterId) {
+  if (trip.tripOwner != req.body.requester._id) {
     next(new AppError("Trip does not belong to logged in user"));
     return;
   }
@@ -34,7 +34,7 @@ exports.getTrip = catchAsync(async (req, res, next) => {
 });
 
 exports.createTrip = catchAsync(async (req, res, next) => {
-  req.body.tripOwner = req.body.requesterId;
+  req.body.tripOwner = req.body.requester._id;
   const newTrip = await Trip.create(req.body);
   const user = await User.findById(req.body.tripOwner);
 
@@ -55,7 +55,7 @@ exports.updateTrip = catchAsync(async (req, res, next) => {
   if (!trip) {
     next(new AppError("Trip not found"));
     return;
-  } else if (trip.tripOwner !== req.body.requesterId) {
+  } else if (trip.tripOwner != req.body.requester._id) {
     next(new AppError("Trip does not belong to logged in user"));
     return;
   }
@@ -88,7 +88,7 @@ exports.deleteTrip = catchAsync(async (req, res, next) => {
   if (!trip) {
     next(new AppError("Trip not found"));
     return;
-  } else if (trip.tripOwner !== req.body.requesterId) {
+  } else if (trip.tripOwner != req.body.requester._id) {
     next(new AppError("Trip does not belong to logged in user"));
     return;
   }
@@ -105,7 +105,7 @@ exports.getSchedule = catchAsync(async (req, res, next) => {
   if (!trip) {
     next(new AppError("Trip not found"));
     return;
-  } else if (trip.tripOwner !== req.body.requesterId) {
+  } else if (trip.tripOwner != req.body.requester._id) {
     next(new AppError("Trip does not belong to logged in user"));
     return;
   }
@@ -131,7 +131,7 @@ exports.updateSchedule = catchAsync(async (req, res, next) => {
   if (!trip) {
     next(new AppError("Trip not found"));
     return;
-  } else if (trip.tripOwner !== req.body.requesterId) {
+  } else if (trip.tripOwner != req.body.requester._id) {
     next(new AppError("Trip does not belong to logged in user"));
     return;
   }
