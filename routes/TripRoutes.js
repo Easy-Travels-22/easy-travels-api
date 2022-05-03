@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../controllers/authController");
+const { protect, restrictTo } = require("../controllers/authController");
 const {
   getAllTrips,
   getTrip,
@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.route("/get-schedule/:id").get(protect, getSchedule);
 router.route("/update-schedule/:id").patch(updateSchedule);
-router.route("/").get(protect, getAllTrips).post(protect, createTrip); //needs to be admin protected
+router.route("/").get(protect, getAllTrips).post(protect, createTrip);
 router
   .route("/:id")
   .patch(protect, updateTrip)
