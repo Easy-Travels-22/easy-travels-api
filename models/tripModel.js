@@ -14,16 +14,17 @@ const tripSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
+    required: true,
     validate: {
       validator: function (date) {
-        console.log(this);
-        return date < this.endDate;
+        return date <= this.endDate;
       },
       message: "Start Date must be before End Date",
     },
   },
   endDate: {
     type: Date,
+    required: true,
   },
   schedule: {
     type: [[String]],
@@ -38,6 +39,13 @@ const tripSchema = new mongoose.Schema({
 
 tripSchema.pre("save", function (next) {
   this.createdOn = Date.now();
+  const duration =
+    Math.ceil((this.endDate - this.startDate) / (24 * 60 * 60 * 1000)) + 1;
+  if (this.isNew) {
+    for (let i = 0; i < duration; i++) {
+      this.schedule.push([]);
+    }
+  }
   next();
 });
 
