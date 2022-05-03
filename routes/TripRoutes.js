@@ -8,7 +8,6 @@ const {
   deleteTrip,
   getSchedule,
   updateSchedule,
-  assignTripOwner,
 } = require("../controllers/tripController");
 
 const router = express.Router();
