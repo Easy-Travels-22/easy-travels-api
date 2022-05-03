@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
     maxLength: [20, "User Password cannot exceed 20 characters"],
     select: false,
   },
+  passwordChangedAt: Date,
   trips: {
     type: [String],
   },
@@ -40,8 +41,14 @@ userSchema.pre("save", async function (next) {
 
   // the 2nd parameter is cost, how highly encrypted the password will be
   this.password = await bcrypt.hash(this.password, 12);
+  this.passwordChangedAt = Date.now();
   next();
 });
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000);
+  return changedTimestamp > JWTTimestamp;
+};
 
 const User = mongoose.model("User", userSchema);
 
