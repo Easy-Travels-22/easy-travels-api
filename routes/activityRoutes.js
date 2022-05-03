@@ -8,15 +8,16 @@ const {
   getActivity,
   getAllActivities,
 } = require("../controllers/activityController");
+const { protect } = require("../controllers/authController");
 
 const router = express.Router();
 
-router.route("/").post(createActivity).get(getAllActivities);
+router.route("/").post(protect, createActivity).get(protect, getAllActivities);
 
 router
   .route("/:id")
-  .delete(deleteActivity)
-  .patch(updateActivity)
-  .get(getActivity);
+  .delete(protect, deleteActivity)
+  .patch(protect, updateActivity)
+  .get(protect, getActivity);
 
 module.exports = router;
