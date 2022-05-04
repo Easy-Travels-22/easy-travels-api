@@ -11,6 +11,7 @@ const {
   getAllUsers,
   getUser,
   updateMe,
+  updateUser,
   deleteUser,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../controllers/authController");
@@ -25,6 +26,9 @@ router.patch("/updateMe", protect, updateMe);
 router.get("/get-user-trips", getUserTrips);
 
 router.route("/").get(protect, restrictTo("Admin"), getAllUsers);
-router.route("/:id").get(getUser);
+router
+  .route("/:id")
+  .get(getUser)
+  .patch(protect, restrictTo("Admin"), updateUser);
 
 module.exports = router;

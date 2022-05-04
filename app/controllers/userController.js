@@ -66,6 +66,19 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.body.requester._id, req.body, {
+    new: true,
+  });
+
+  res.status(200).json({
+    message: "success",
+    data: {
+      user,
+    },
+  });
+});
+
 exports.deleteMe = catchAsync(async (req, res, next) => {
   // authenticate to be either self, else
   // need admin authentication
