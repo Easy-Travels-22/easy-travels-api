@@ -1,6 +1,8 @@
 const User = require("../models/userModel");
 const Trip = require("../models/tripModel");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
+const bcrypt = require("bcryptjs");
 
 exports.getUserTrips = catchAsync(async (req, res, next) => {
   const { trips: tripsId } = await User.find().trips;
@@ -28,9 +30,6 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
-  // authenticate to be either self, else
-  // need admin authentication
-
   const user = await User.findById(req.params.id);
 
   res.status(200).json({
@@ -80,9 +79,22 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
-  // authenticate to be either self, else
-  // need admin authentication
+  let user = await User.findById(req.body.requester._id);
 
+  if (!req.body.password) {
+    return next(AppError("Please provide your password"));
+  } else if (!bcrypt.compare(req.body.password, user.password)) {
+    return next(AppError("Password provided is incorrect"));
+  }
+
+  user = await User.findByIdAndDelete(req.body.requester._id);
+
+  res.status(200).json({
+    message: "success",
+  });
+});
+
+exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
 
   res.status(200).json({
