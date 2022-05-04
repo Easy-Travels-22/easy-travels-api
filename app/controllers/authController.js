@@ -94,9 +94,9 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  if (req.body.password) {
+  if (!req.body.password) {
     next(new AppError("Please provide current password"));
-  } else if (req.body.newPassword) {
+  } else if (!req.body.newPassword) {
     next(new AppError("Please provide new password"));
   }
 
