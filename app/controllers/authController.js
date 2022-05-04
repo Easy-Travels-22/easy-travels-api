@@ -94,6 +94,12 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
+  if (req.body.password) {
+    next(new AppError("Please provide current password"));
+  } else if (req.body.newPassword) {
+    next(new AppError("Please provide new password"));
+  }
+
   // GET USER FROM THE COLLECTION
   const user = await User.findById(req.body.requester._id).select("+password");
 
