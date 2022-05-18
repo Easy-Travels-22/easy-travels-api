@@ -47,8 +47,16 @@ exports.getTrip = catchAsync(async (req, res, next) => {
 });
 
 exports.createTrip = catchAsync(async (req, res, next) => {
-  req.body.tripOwner = req.body.requester._id;
-  const newTrip = await Trip.create(req.body);
+  if (!req.body.name) {
+    return next(new AppError("Please provide a name"));
+  }
+  const newTrip = await Trip.create({
+    name: req.body.name,
+    description: req.body.description,
+    startDate: req.body.startDate,
+    endDate: req.body.endDate,
+    tripOwner: req.body.requester._id,
+  });
   const user = await User.findById(req.body.tripOwner);
 
   user.trips.push(newTrip._id);
