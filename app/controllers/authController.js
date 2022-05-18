@@ -10,6 +10,13 @@ const createSendToken = (user, statusCode, res) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+  user = {
+    name: user.name,
+    _id: user._id,
+    trips: user.trips,
+    dateJoined: user.dateJoined,
+  };
+
   res.status(statusCode).json({
     status: "success",
     user,
