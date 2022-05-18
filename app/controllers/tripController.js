@@ -57,7 +57,7 @@ exports.createTrip = catchAsync(async (req, res, next) => {
     endDate: req.body.endDate,
     tripOwner: req.body.requester._id,
   });
-  const user = await User.findById(req.body.tripOwner);
+  const user = await User.findById(req.body.requester._id);
 
   user.trips.push(newTrip._id);
   user.save();
